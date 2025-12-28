@@ -1,0 +1,20 @@
+# HyperConomy Development Rules
+
+## API Preferences
+- **Always prefer PaperAPI over deprecated Bukkit functions**
+- When Bukkit API methods are deprecated or removed, use Paper API equivalents
+- Use Paper's Tag API (e.g., `Tag.ALL_SIGNS`, `Tag.LEAVES`) instead of checking individual Material types
+- Prefer modern Material names (e.g., `PLAYER_HEAD` over `SKULL_ITEM`, `FIREWORK_ROCKET` over `FIREWORK`, `FIREWORK_STAR` over `FIREWORK_CHARGE`)
+
+## Code Style
+- Include, expand, and enhance docstrings
+- Do not remove comments unless they are no longer valid
+- Update README.md and CONFIG.md with any applicable additions or changes
+- When there are multiple functions, variables, or text keys we should keep them in order, except for getters and setters, which will be ordered by the variable they get or set
+- Attempt to replace any deprecated functions or variables that are identified in the linter
+- Create Migrations for database initialization and any schema changes
+
+## Package Naming
+- All packages use `org.clockworx.*` namespace
+- External dependencies (like SimpleDataLib) retain their original package names (`regalowl.simpledatalib.*`)
+

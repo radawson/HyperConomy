@@ -51,7 +51,12 @@ public class BukkitFrameShop implements FrameShop, HyperEventListener {
 		this.s = s;
 		this.bc = (BukkitConnector)hc.getMC();
 		MapView mapView = Bukkit.getServer().createMap(bc.getBukkitCommon().getLocation(l).getWorld());
-		mapId = mapView.getId();
+		// MapView.getId() returns int, but we store as short - cast with validation
+		int mapIdInt = mapView.getId();
+		if (mapIdInt > Short.MAX_VALUE || mapIdInt < Short.MIN_VALUE) {
+			throw new IllegalArgumentException("Map ID " + mapIdInt + " is out of short range");
+		}
+		mapId = (short) mapIdInt;
 		String shop = "";
 		if (s != null) {
 			shop = s.getName();

@@ -1,11 +1,11 @@
 package org.clockworx.hyperconomy.currency;
 
 import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import org.clockworx.hyperconomy.HyperConomy;
+import regalowl.simpledatalib.file.FileConfiguration;
 
 /**
  * Implementation of CurrencyProvider for item-based currency systems.
@@ -32,9 +32,12 @@ public class ItemCurrencyProvider implements CurrencyProvider {
         FileConfiguration config = hc.getConf();
         
         // Load currency configuration
-        String materialName = config.getString("currency.item.material", "GOLD_NUGGET");
-        this.currencyName = config.getString("currency.item.display-name", "Gold Nugget");
-        this.customModelData = config.contains("currency.item.custom-model-data") 
+        String materialName = config.getString("currency.item.material");
+        if (materialName == null) materialName = "GOLD_NUGGET";
+        String displayName = config.getString("currency.item.display-name");
+        this.currencyName = (displayName != null) ? displayName : "Gold Nugget";
+        // Use isSet() instead of contains() for SimpleDataLib FileConfiguration
+        this.customModelData = config.isSet("currency.item.custom-model-data") 
             ? config.getInt("currency.item.custom-model-data") 
             : null;
         

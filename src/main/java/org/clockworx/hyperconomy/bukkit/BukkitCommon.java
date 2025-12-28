@@ -14,6 +14,7 @@ import org.bukkit.FireworkEffect;
 import org.bukkit.FireworkEffect.Builder;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -123,7 +124,8 @@ public class BukkitCommon {
 
 	protected boolean isTransactionSign(HLocation l) {
 		Block b = getBlock(l);
-		if (b != null && b.getType().equals(Material.SIGN_POST) || b != null && b.getType().equals(Material.WALL_SIGN)) {
+		// Use Paper Tag API for modern sign checking
+		if (b != null && Tag.ALL_SIGNS.isTagged(b.getType())) {
 			Sign s = (Sign) b.getState();
 			String line3 = ChatColor.stripColor(s.getLine(2)).trim();
 			if (line3.equalsIgnoreCase("[sell:buy]") || line3.equalsIgnoreCase("[sell]") || line3.equalsIgnoreCase("[buy]")) {
@@ -135,7 +137,8 @@ public class BukkitCommon {
 
 	protected boolean isInfoSign(HLocation l) {
 		Block b = getBlock(l);
-		if (b != null && b.getType().equals(Material.SIGN_POST) || b != null && b.getType().equals(Material.WALL_SIGN)) {
+		// Use Paper Tag API for modern sign checking
+		if (b != null && Tag.ALL_SIGNS.isTagged(b.getType())) {
 			Sign s = (Sign) b.getState();
 			String type = ChatColor.stripColor(s.getLine(2)).trim().replace(":", "").replace(" ", "");
 			if (SignType.isSignType(type)) return true;
@@ -181,7 +184,8 @@ public class BukkitCommon {
 		if (b == null) return null;
 		for (BlockFace cface : planeFaces) {
 			Block block = b.getRelative(cface);
-			if (block.getType().equals(Material.WALL_SIGN)) {
+			// Use Paper Tag API for modern sign checking
+			if (Tag.WALL_SIGNS.isTagged(block.getType())) {
 				org.bukkit.material.Sign sign = (org.bukkit.material.Sign) block.getState().getData();
 				BlockFace attachedface = sign.getFacing();
 				if (block.getRelative(attachedface.getOppositeFace()).equals(b)) {
@@ -500,11 +504,16 @@ public class BukkitCommon {
         		itemMeta = new HMapMeta(displayName, lore, enchantments, itemFlags, unbreakable, repairCost, sItemMeta.isScaling());
         	} else if (im instanceof BannerMeta) {
         		BannerMeta sItemMeta = (BannerMeta)im;
-        		DyeColor dyeColor = sItemMeta.getBaseColor();
+        		// In newer Paper versions, getBaseColor() is removed
+        		// Base color is determined by the first pattern or defaults to WHITE
         		String baseColor = "WHITE";
-        		if (dyeColor != null) baseColor = sItemMeta.getBaseColor().toString();
+        		java.util.List<Pattern> patternsList = sItemMeta.getPatterns();
+        		if (patternsList != null && !patternsList.isEmpty()) {
+        			// Use the first pattern's color as the base color
+        			baseColor = patternsList.get(0).getColor().toString();
+        		}
         		ArrayList<HPattern> patterns = new ArrayList<HPattern>();
-        		for (Pattern p:sItemMeta.getPatterns()) {
+        		for (Pattern p:patternsList) {
         			patterns.add(new HPattern(p.getColor().toString(), p.getPattern().toString()));
         		}
         		itemMeta = new HBannerMeta(displayName, lore, enchantments, itemFlags, unbreakable, repairCost, baseColor, patterns);
@@ -613,10 +622,28 @@ public class BukkitCommon {
         	} else if (hItemMeta instanceof HBannerMeta) {
         		HBannerMeta sItemMeta = (HBannerMeta)hItemMeta;
         		BannerMeta bm = (BannerMeta)itemMeta;
-        		for (HPattern hp:sItemMeta.getPatterns()) {
-        			bm.addPattern(new Pattern(DyeColor.valueOf(hp.getDyeColor()), PatternType.valueOf(hp.getPatternType())));
+        		// In newer Paper versions, setBaseColor() is removed
+        		// Base color is set via the first pattern
+        		ArrayList<HPattern> patterns = sItemMeta.getPatterns();
+        		if (patterns != null && !patterns.isEmpty()) {
+        			// Add base color as first pattern if it differs from first pattern's color
+        			String baseColor = sItemMeta.getBaseColor();
+        			HPattern firstPattern = patterns.get(0);
+        			if (baseColor != null && !baseColor.equals(firstPattern.getDyeColor())) {
+        				// Base color differs, add it as the first pattern (base layer)
+        				bm.addPattern(new Pattern(DyeColor.valueOf(baseColor), PatternType.BASE));
+        			}
+        			// Add all patterns
+        			for (HPattern hp:patterns) {
+        				bm.addPattern(new Pattern(DyeColor.valueOf(hp.getDyeColor()), PatternType.valueOf(hp.getPatternType())));
+        			}
+        		} else {
+        			// No patterns, set base color as first pattern
+        			String baseColor = sItemMeta.getBaseColor();
+        			if (baseColor != null && !baseColor.equals("WHITE")) {
+        				bm.addPattern(new Pattern(DyeColor.valueOf(baseColor), PatternType.BASE));
+        			}
         		}
-        		bm.setBaseColor(DyeColor.valueOf(sItemMeta.getBaseColor()));
         	} else if (hItemMeta instanceof HSpawnEggMeta) {
         		HSpawnEggMeta sItemMeta = (HSpawnEggMeta)hItemMeta;
         		SpawnEggMeta sem = (SpawnEggMeta)itemMeta;

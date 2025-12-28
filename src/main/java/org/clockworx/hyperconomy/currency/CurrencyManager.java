@@ -30,7 +30,8 @@ public class CurrencyManager {
      */
     private void loadCurrencyProvider() {
         FileConfiguration config = hc.getConf();
-        String currencyTypeStr = config.getString("currency.type", "BALANCE");
+        String currencyTypeStr = config.getString("currency.type");
+        if (currencyTypeStr == null) currencyTypeStr = "BALANCE";
         
         try {
             CurrencyType currencyType = CurrencyType.valueOf(currencyTypeStr.toUpperCase());

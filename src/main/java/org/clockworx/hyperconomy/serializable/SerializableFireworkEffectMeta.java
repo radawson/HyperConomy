@@ -44,7 +44,8 @@ public class SerializableFireworkEffectMeta extends SerializableItemMeta impleme
 	
 	@Override
 	public ItemMeta getItemMeta() {
-		ItemStack s = new ItemStack(Material.FIREWORK_CHARGE);
+		// Use modern Paper API: FIREWORK_CHARGE is deprecated, use FIREWORK_STAR
+		ItemStack s = new ItemStack(Material.FIREWORK_STAR);
 		FireworkEffectMeta fem = (FireworkEffectMeta)s.getItemMeta();
 		fem.setDisplayName(displayName);
 		fem.setLore(lore);

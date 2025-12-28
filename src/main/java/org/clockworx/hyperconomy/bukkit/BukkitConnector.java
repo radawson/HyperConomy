@@ -15,6 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.Location;
@@ -641,7 +642,9 @@ public class BukkitConnector extends JavaPlugin implements MineCraftConnector, L
 	public boolean canHoldChestShopSign(HLocation l) {
 		Block b = common.getBlock(l);
 		Material m = b.getType();
-		if (m == Material.ICE || m == Material.LEAVES || m == Material.SAND || m == Material.GRAVEL || m == Material.SIGN || m == Material.SIGN_POST || m == Material.TNT) {
+		// Use Paper Tag API for modern checking - LEAVES is now a tag, ICE/SAND/GRAVEL/TNT still exist
+		if (m == Material.ICE || Tag.LEAVES.isTagged(m) || m == Material.SAND || m == Material.GRAVEL || 
+		    Tag.ALL_SIGNS.isTagged(m) || m == Material.TNT) {
 			return false;
 		}
 		return true;
@@ -664,9 +667,11 @@ public class BukkitConnector extends JavaPlugin implements MineCraftConnector, L
 	public HSign getSign(HLocation location) {
 		if (location == null) return null;
 		Block b = common.getLocation(location).getBlock();
-		if (b != null && (b.getType().equals(Material.SIGN_POST) || b.getType().equals(Material.WALL_SIGN))) {
+		// Use Paper Tag API for modern sign checking
+		if (b != null && Tag.ALL_SIGNS.isTagged(b.getType())) {
 			Sign s = (Sign) b.getState();
-			boolean isWallSign = (b.getType().equals(Material.WALL_SIGN)) ? true:false;
+			// Check if it's a wall sign using Tag API
+			boolean isWallSign = Tag.WALL_SIGNS.isTagged(b.getType());
 			ArrayList<String> lines = new ArrayList<String>();
 			for (String l:s.getLines()) {
 				lines.add(l);

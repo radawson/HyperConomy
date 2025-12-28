@@ -45,7 +45,8 @@ public class SerializableSkullMeta extends SerializableItemMeta implements Seria
 	
 	@Override
 	public ItemMeta getItemMeta() {
-		ItemStack s = new ItemStack(Material.SKULL_ITEM);
+		// Use modern Paper API: SKULL_ITEM is deprecated, use PLAYER_HEAD
+		ItemStack s = new ItemStack(Material.PLAYER_HEAD);
 		SkullMeta sm = (SkullMeta)s.getItemMeta();
 		sm.setDisplayName(displayName);
 		sm.setLore(lore);
