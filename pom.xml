@@ -64,7 +64,7 @@
 			<groupId>net.sf.opencsv</groupId>
 			<artifactId>opencsv</artifactId>
 			<version>2.3</version>
-			<scope>provided</scope>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.yaml</groupId>
@@ -156,6 +156,14 @@
 									</excludes>
 								</filter>
 							</filters>
+							<!-- Explicitly include SimpleDataLib (which already contains shaded opencsv) and snakeyaml -->
+							<!-- Note: opencsv is already shaded into SimpleDataLib, so we don't include it separately -->
+							<artifactSet>
+								<includes>
+									<include>regalowl.simpledatalib:simpledatalib</include>
+									<include>org.yaml:snakeyaml</include>
+								</includes>
+							</artifactSet>
 						</configuration>
 					</execution>
 				</executions>

@@ -1,6 +1,7 @@
 name: HyperConomy
 main: org.clockworx.hyperconomy.bukkit.BukkitConnector
-version: 0.975.8
+version: 0.975.11
+api-version: 1.21
 author: RegalOwl, ClockWorX
 website: https://github.com/radawson/HyperConomy
 softdepend: [Essentials, ServiceIO, Shopkeepers]

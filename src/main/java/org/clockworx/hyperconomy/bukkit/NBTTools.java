@@ -38,11 +38,62 @@ public class NBTTools {
 	public NBTTools() {
 
 		try {
-			String version = Bukkit.getServer().getClass().getPackage().getName();
-			version = version.substring(version.lastIndexOf(".") + 1, version.length());
+			// Get version from CraftServer class package name
+			// Paper's reflection rewriter requires careful version extraction
+			String serverPackage = Bukkit.getServer().getClass().getPackage().getName();
+			String version;
+			
+			// Extract version from package name like "org.bukkit.craftbukkit.v1_21_R1"
+			if (serverPackage.contains("craftbukkit")) {
+				// Find the part after "craftbukkit."
+				int craftbukkitIndex = serverPackage.indexOf("craftbukkit.");
+				if (craftbukkitIndex >= 0) {
+					String afterCraftbukkit = serverPackage.substring(craftbukkitIndex + "craftbukkit.".length());
+					// Get the version part (everything before the next dot, or everything if no dot)
+					int nextDot = afterCraftbukkit.indexOf(".");
+					if (nextDot > 0) {
+						version = afterCraftbukkit.substring(0, nextDot);
+					} else {
+						version = afterCraftbukkit;
+					}
+				} else {
+					// Fallback: use last segment
+					version = serverPackage.substring(serverPackage.lastIndexOf(".") + 1);
+				}
+			} else {
+				// Fallback: try to get version from CraftServer class name directly
+				Class<?> craftServerClass = Bukkit.getServer().getClass();
+				String className = craftServerClass.getName();
+				// Extract version from class name like "org.bukkit.craftbukkit.v1_21_R1.CraftServer"
+				if (className.contains("craftbukkit")) {
+					int craftbukkitIndex = className.indexOf("craftbukkit.");
+					String afterCraftbukkit = className.substring(craftbukkitIndex + "craftbukkit.".length());
+					int nextDot = afterCraftbukkit.indexOf(".");
+					if (nextDot > 0) {
+						version = afterCraftbukkit.substring(0, nextDot);
+					} else {
+						version = afterCraftbukkit;
+					}
+				} else {
+					// Last resort: use last segment before class name
+					int lastDot = className.lastIndexOf(".");
+					int secondLastDot = className.lastIndexOf(".", lastDot - 1);
+					if (secondLastDot > 0) {
+						version = className.substring(secondLastDot + 1, lastDot);
+					} else {
+						throw new RuntimeException("Could not determine server version from: " + className);
+					}
+				}
+			}
+			
+			// Validate version doesn't contain "craftbukkit" (which would cause duplication)
+			if (version.contains("craftbukkit")) {
+				throw new RuntimeException("Invalid version detected (contains 'craftbukkit'): " + version);
+			}
+			
 			craftItemStackClass = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
 			nbtTagCompound = Class.forName("net.minecraft.server." + version + ".NBTTagCompound");
-			Object nbtTag = nbtTagCompound.newInstance();
+			Object nbtTag = nbtTagCompound.getDeclaredConstructor().newInstance();
 			@SuppressWarnings("rawtypes")
 			Class nbtBase = Class.forName("net.minecraft.server." + version + ".NBTBase");
 			craftItemStackAsNMSCopyMethod = craftItemStackClass.getMethod("asNMSCopy", ItemStack.class);
@@ -131,9 +182,10 @@ public class NBTTools {
 			e.printStackTrace();
 		}
 	}
+	@SuppressWarnings("unchecked")
 	public Object generateNBTTag() {
 		try {
-			return nbtTagCompound.newInstance();
+			return nbtTagCompound.getDeclaredConstructor().newInstance();
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
