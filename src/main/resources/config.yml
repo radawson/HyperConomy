@@ -17,8 +17,15 @@ enable-feature:
   time-effects: false
 economy-plugin:
   use-external: true
-  hook-internal-economy-into-vault: false
+  hook-internal-economy-into-serviceio: false
   starting-player-account-balance: 0.0
+currency:
+  type: ITEM
+  item:
+    material: GOLD_NUGGET
+    display-name: "Gold Nugget"
+    custom-model-data: null
+  balance-mode: false
 sql:
   use-mysql: false
   log-sql-statements: false

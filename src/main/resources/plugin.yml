@@ -1,9 +1,9 @@
 name: HyperConomy
-main: regalowl.hyperconomy.bukkit.BukkitConnector
+main: org.clockworx.hyperconomy.bukkit.BukkitConnector
 version: 0.975.8
-author: RegalOwl
-website: http://dev.bukkit.org/server-mods/hyperconomy/
-softdepend: [HeroStronghold, Buycraft, Essentials, Vault]
+author: RegalOwl, ClockWorX
+website: https://github.com/radawson/HyperConomy
+softdepend: [HeroStronghold, Buycraft, Essentials, ServiceIO]
 loadbefore: []
 commands:
    buy:
