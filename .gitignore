@@ -1,4 +1,59 @@
-.settings/*
-target/
-dependency-reduced-pom.xml
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradle/wrapper/gradle-wrapper.properties.bak
+
+# IDE
 .idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+.loadpath
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Build outputs
+*.class
+*.jar
+*.war
+*.ear
+*.log
+target/
+out/
+bin/
+
+# Maven (if used)
+dependency-reduced-pom.xml
+.flattened-pom.xml
+
+# Test outputs
+test-results/
+test-reports/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+*.orig
+
+# Local configuration
+local.properties
+*.local
+
+# Paper/Spigot server files (if testing locally)
+server/
+logs/
+crash-reports/
+plugins/
+world/
+world_nether/
+world_the_end/
