@@ -26,31 +26,31 @@ dependencies {
     paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
     
     // Database - Core
-    implementation("org.hibernate:hibernate-core:6.7.1.Final") 
-    implementation("org.hibernate:hibernate-community-dialects:6.7.1.Final")
-    implementation("org.flywaydb:flyway-core:11.8.0")
-    implementation("org.flywaydb:flyway-mysql:11.8.0")
+    implementation("org.hibernate:hibernate-core:6.6.40.Final") 
+    implementation("org.hibernate:hibernate-community-dialects:6.6.40.Final")
+    implementation("org.flywaydb:flyway-core:11.20.0")
+    implementation("org.flywaydb:flyway-mysql:11.20.0")
     implementation("com.mysql:mysql-connector-j:9.1.0")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
     implementation("org.postgresql:postgresql:42.7.5")
     
     // Database - Connection Pools (Shade this)
     implementation("com.zaxxer:HikariCP:6.3.0")
-    implementation("org.hibernate.orm:hibernate-hikaricp:6.7.1.Final")
+    implementation("org.hibernate.orm:hibernate-hikaricp:6.6.40.Final")
 
     // Jakarta Persistence API
     implementation("jakarta.persistence:jakarta.persistence-api:3.1.0")
     
     // Logging - Make sure we use compatible versions
-    implementation("org.jboss.logging:jboss-logging:3.5.4.Final")
+    implementation("org.jboss.logging:jboss-logging:3.6.1.Final")
     implementation("org.jboss.logging:jboss-logging-annotations:2.2.1.Final")
     // Use Logback for SLF4J implementation compatible with Paper
-    implementation("ch.qos.logback:logback-classic:1.5.14")
+    implementation("ch.qos.logback:logback-classic:1.5.23")
     // implementation("org.slf4j:slf4j-api:2.0.9") // Provided by Paper/Logback
     
     // Lombok (for boilerplate code reduction)
-    compileOnly("org.projectlombok:lombok:1.18.36")
-    annotationProcessor("org.projectlombok:lombok:1.18.36")
+    compileOnly("org.projectlombok:lombok:1.18.42")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
     
     // ServiceIO API - Modern drop-in replacement for Vault
     // ServiceIO implements the Vault Economy interface for compatibility
