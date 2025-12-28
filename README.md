@@ -1,83 +1,158 @@
 HyperConomy
 ===========
 
-HyperConomy is the all in one economy and shop plugin.  It can be a simple chest or sign shop plugin, a Vault compatible economy plugin, a region based shop plugin with many configurable options, or even a complex system of economically competing towns and kingdoms.  Any vanilla Minecraft item can be traded in HyperConomy and virtually any custom item can be added as well.  Prices can be configured to change dynamically or they can be set as desired.  To quickly edit prices and settings you can double click on HyperConomy.jar to access the GUI editor.  HyperConomy has many features including things such as item price linking and showcase style item displays.  Read below or check out the wiki for more information.
+HyperConomy is the all-in-one economy and shop plugin for Minecraft servers. It can be a simple chest or sign shop plugin, a Vault/ServiceIO compatible economy plugin, a region-based shop plugin with many configurable options, or even a complex system of economically competing towns and kingdoms. Any vanilla Minecraft item can be traded in HyperConomy and virtually any custom item can be added as well. Prices can be configured to change dynamically or they can be set as desired. HyperConomy has many features including item price linking, showcase-style item displays, and a flexible currency system.
+
+**Requirements:**
+- Paper/Spigot 1.21+ (Paper recommended)
+- Java 21 or later
+- ServiceIO (for economy integration) or Vault (legacy)
+
+## Installation
+
+### For Server Owners
+
+1. Download HyperConomy releases from [GitHub Releases](https://github.com/radawson/HyperConomy/releases) or build from source
+2. Place the HyperConomy jar file in your server's `plugins` folder
+3. Restart your server
+4. Configure HyperConomy via `plugins/HyperConomy/config.yml`
+5. See the [Configuration Guide](docs/configuration.md) for detailed setup instructions
+
+### Building from Source
+
+```bash
+git clone https://github.com/radawson/HyperConomy.git
+cd HyperConomy
+./gradlew build
+```
+
+The built jar will be in `build/libs/` with the `-paper.jar` suffix.
+
+**Note:** HyperConomy uses Gradle with Paperweight for building. Java 21+ is required for development.
 
 
-Installation
----------
-* Download HyperConomy releases from [BukkitDev](http://dev.bukkit.org/bukkit-plugins/hyperconomy/files/) or get the latest [development build](http://regalowl.net:8081/job/HyperConomy/).
-* Place the HyperConomy jar file your plugins folder.
-* Restart your server.
+## Features
+
+### Core Features
+* **Comprehensive Item Support**: Supports all standard Minecraft items (fireworks, lore, books, maps, damaged items, etc.)
+* **Custom Items**: Supports the addition of unlimited custom items
+* **Economy Integration**: Integrated economy plugin with ServiceIO/Vault compatibility
+* **Multiple Shop Types**: Server shops, player shops, chest shops, and item frame shops
+* **Dynamic Pricing**: Hyperbolic curve-based pricing system that responds to supply and demand
+* **Item Price Linking**: Recipe items automatically price based on component items
+* **Multiple Economies**: Create unlimited separate economies for competing towns, kingdoms, factions, or groups
+* **Flexible Currency System**: Item-based currency or traditional balance-based economy
+
+### Trading & Commerce
+* **Player Trading**: Player-to-player, player-to-shop, and shop-to-player trading
+* **Transaction Signs**: Command-free economies using interactive signs
+* **Chest Shops**: Container-based shops that pull from player inventories
+* **Item Displays**: Showcase-style item displays for shop presentation
+* **Info Signs**: Automatically updating information signs showing prices, history, and more
+
+### Economy & Pricing
+* **Tax System**: Static and dynamic tax rates (rich players can be taxed more than poor ones)
+* **Pricing Controls**: Price floor, price ceiling, static pricing, initial pricing, and unlimited stock options
+* **Price History**: Track price changes over time with configurable retention
+* **Price Notifications**: Get notified when prices change for specific items
+* **Experience Trading**: Trade experience points and enchantments
+
+### Advanced Features
+* **Multi-Server Support**: Synchronize shops, accounts, and trade objects across multiple servers
+* **Remote GUI**: Access and manage HyperConomy remotely via GUI
+* **Web Interface**: Optional web page for viewing economy data
+* **Bank System**: Player-owned banks with configurable ownership limits
+* **Time Effects**: Optional time-based effects on prices and availability
+* **Localization**: Multi-language support
+* **Hot Configuration**: Nearly everything can be changed while the server is running
+* **Feature Toggles**: Disable unwanted features for a streamlined experience
+
+### Technical Features
+* **Database Support**: MySQL, SQLite, and PostgreSQL support via Hibernate
+* **Modern Architecture**: Built on Paper API with modern Java patterns
+* **Shopkeepers Integration**: Compatible with Shopkeepers plugin
+* **Migration System**: Automatic database migrations using Flyway
+
+For detailed feature documentation, see [Features Guide](docs/features.md).
 
 
-Features
----------
+## Documentation
 
-* Supports all standard Minecraft items. (fireworks, lore, books, maps, damaged items, etc.)
-* Supports the addition of unlimited custom items.
-* Integrated economy plugin.
-* Player to player, player to shop, and shop to player trading.
-* Dynamic pricing system based on a hyperbolic curve.
-* Item price linking (price of recipe item is based on price of component items)
-* Player owned shops and chest shops.
-* Item frame shops.
-* Showcase style item displays.
-* Localization.
-* GUI Editor for easy manipulation of price settings.
-* Price floor, price ceiling, static pricing, initial pricing, sales tax, purchase tax, unlimited stock option and much more.
-* Dynamic tax rates. (Rich players can be taxed more than poor ones.)
-* Supports MySQL and SQLite.
-* Allows the creation of an unlimited number of economies, which allows for economically competing towns, kingdoms, factions, or other groups.
-* Supports command-free economies using transaction signs.
-* Price information, history, and more can be displayed on automatically updating information signs.
-* Price update notifications for any or all items.
-* Experience and enchantment trading.
-* When a player enters and leaves a shop, HyperConomy displays a customizable message.
-* Nearly everything can be changed while the server is running.
-* Unwanted features can be disabled.
+Comprehensive documentation is available in the `docs/` folder:
 
+* **[Features Guide](docs/features.md)**: Detailed documentation of all HyperConomy features
+* **[Configuration Guide](docs/configuration.md)**: Complete configuration reference
+* **[Usage Guide](docs/usage.md)**: User guide for commands, permissions, and common tasks
 
-Releases
----------
+## Recent Improvements
 
-* Recommended builds are marked with [RB] and are generally thought to be stable and bug free.
-* Builds marked as [Beta] are as bug free as possible, but often have large code changes which may result in the appearance of new bugs.
-* Builds marked as [Dev] are development builds.  Development builds may contain bugs as I work on releasing a new [Beta] build. They may also contain fixes for bugs found in [Beta] builds. Use these builds if you're looking for a bug fix, or would like to try out a new feature I've just added. Also, feel free to search for bugs in the development builds. Any help with testing is greatly appreciated!  Please create a ticket if you find a bug in a Dev build and I'll fix it as soon as I can.
+HyperConomy has been modernized with the following improvements:
 
+* **Paper API**: Migrated from deprecated Bukkit/Spigot APIs to modern Paper API
+* **Java 21+**: Updated to require Java 21 for better performance and modern language features
+* **Modern Database Stack**: Integrated Hibernate ORM with Flyway migrations for better database management
+* **Connection Pooling**: Uses HikariCP for efficient database connection management
+* **Currency System**: New flexible currency system supporting both item-based and balance-based economies
+* **Shopkeepers Integration**: Enhanced integration with Shopkeepers plugin
+* **Improved Architecture**: Better code organization and maintainability
 
-Add-ons
----------
+## Releases
 
-[HyperMerchant](http://dev.bukkit.org/bukkit-plugins/hypermerchant/)
+Releases are available on [GitHub Releases](https://github.com/radawson/HyperConomy/releases).
 
-HyperMerchant is a graphical user interface for your players to use to interact with HyperConomy shops.  It is also includes the ability to easily create Citizens npc shopkeepers for your HyperConomy shops.
+* **Stable Releases**: Recommended for production servers
+* **Beta Builds**: Feature-complete but may contain bugs from large changes
+* **Development Builds**: Latest features and bug fixes, may be unstable
+
+When reporting bugs, please include:
+* HyperConomy version
+* Server type and version (Paper/Spigot)
+* Full error message or stack trace
+* Steps to reproduce the issue
 
 
-Feature Requests, Bugs, Problems, etc.
----------
+## Add-ons & Integrations
 
-* If you have a question, or find a bug, first check the [FAQ](https://github.com/RegalOwl/HyperConomy-Documentation/blob/master/Wiki/FAQ.creole). I will try to include as many helpful questions and answers as possible.
-* If the FAQ doesn't help, don't hesitate to post your question or make a ticket.
-* If you do find a bug, please include which version of HyperConomy you're using, the full error message or stack trace (if there is one), the version and type of Minecraft server you're running, and an explanation of how to reproduce the bug or what causes the bug.
+### Compatible Plugins
+* **ServiceIO**: Modern economy API (recommended)
+* **Vault**: Legacy economy API (still supported)
+* **Shopkeepers**: Enhanced shopkeeper integration
+* **Essentials**: Optional integration for economy features
+* **WorldGuard**: Region-based shop restrictions
+* **Citizens**: NPC shopkeeper support via HyperMerchant
 
-
-Donate
----------
-
-* If you'd like to send me a donation for the time and effort spent making this plugin, you can do so [here](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=AMK9AR4CVKEJJ). 
-* To those who have donated: thank you very much for the support. If you'd like to be listed as a donor here just send me a message.
-
+### Add-on Plugins
+* **[HyperMerchant](http://dev.bukkit.org/bukkit-plugins/hypermerchant/)**: Graphical user interface for players to interact with HyperConomy shops. Also includes the ability to easily create Citizens NPC shopkeepers for your HyperConomy shops.
 
 
-Links
----------
-[Tickets](https://github.com/RegalOwl/HyperConomy/issues)
+## Support & Contributing
 
-[Documentation Wiki](https://github.com/RegalOwl/HyperConomy-Documentation)
+### Getting Help
+* Check the [Usage Guide](docs/usage.md) for common tasks
+* Review the [Configuration Guide](docs/configuration.md) for setup questions
+* Search existing [GitHub Issues](https://github.com/radawson/HyperConomy/issues)
+* Create a new issue with:
+  * HyperConomy version
+  * Server type and version
+  * Full error message or stack trace
+  * Steps to reproduce (if applicable)
 
-[BukkitDev Page](http://dev.bukkit.org/bukkit-plugins/hyperconomy/)
+### Contributing
+Contributions are welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes following the project's coding standards
+4. Submit a pull request
 
-[Spigot Page](https://www.spigotmc.org/resources/hyperconomy.4602/)
+See the project's `.cursorrules` file for development guidelines.
 
-[Latest Development Build](http://regalowl.net:8080/job/HyperConomy/)
+## Links
+
+* **[GitHub Repository](https://github.com/radawson/HyperConomy)**: Source code and issue tracking
+* **[GitHub Releases](https://github.com/radawson/HyperConomy/releases)**: Download latest releases
+* **[Documentation](docs/)**: Complete user and configuration documentation
+* **[Legacy Documentation](https://github.com/RegalOwl/HyperConomy-Documentation)**: Original documentation wiki
+
+## License
+
+See [LICENSE](LICENSE) file for details.
