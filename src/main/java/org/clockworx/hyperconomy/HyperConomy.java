@@ -73,6 +73,7 @@ import org.clockworx.hyperconomy.multiserver.MultiServer;
 import org.clockworx.hyperconomy.shop.HyperShopManager;
 import org.clockworx.hyperconomy.timeeffects.TimeEffectsManager;
 import org.clockworx.hyperconomy.currency.CurrencyManager;
+import org.clockworx.hyperconomy.integration.ShopkeepersIntegration;
 import org.clockworx.hyperconomy.util.DebugMode;
 import org.clockworx.hyperconomy.util.History;
 import org.clockworx.hyperconomy.util.HyperLock;
@@ -118,6 +119,7 @@ public class HyperConomy implements HyperEventListener, SDLEventListener {
 	private transient RemoteGUIServer rgs;
 	private transient TimeEffectsManager tem;
 	private transient CurrencyManager currencyManager;
+	private transient ShopkeepersIntegration shopkeepersIntegration;
 	private transient HItemStack blankStack;
 	//private transient DisabledProtection dp;
 	private final int saveInterval = 1200000;
@@ -248,6 +250,7 @@ public class HyperConomy implements HyperEventListener, SDLEventListener {
 		dm = new DataManager(this);
 		dm.initialize();
 		currencyManager = new CurrencyManager(this);
+		shopkeepersIntegration = new ShopkeepersIntegration(this);
 		mc.checkExternalEconomyRegistration();
 		api = new HyperAPI(this);
 		mc.setupHEconomyProvider();
@@ -439,6 +442,10 @@ public class HyperConomy implements HyperEventListener, SDLEventListener {
 	}
 	public CurrencyManager getCurrencyManager() {
 		return currencyManager;
+	}
+	
+	public ShopkeepersIntegration getShopkeepersIntegration() {
+		return shopkeepersIntegration;
 	}
 	public HItemStack getBlankStack() {
 		return blankStack;

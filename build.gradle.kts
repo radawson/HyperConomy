@@ -55,8 +55,8 @@ dependencies {
     // ServiceIO API - Modern drop-in replacement for Vault
     // ServiceIO implements the Vault Economy interface for compatibility
     // Using ServiceIO's official repository: https://repo.thenextlvl.net/releases
-    // Latest available version in Maven: 2.3.1 (as of repository check)
-    compileOnly("net.thenextlvl.services:service-io:2.3.1")
+    // Latest version: 2.3.3 (https://github.com/TheNextLvl-net/service-io/tags)
+    compileOnly("net.thenextlvl.services:service-io:2.3.3")
     
     // Vault API - Used as fallback for compilation (ServiceIO implements this interface)
     // ServiceIO is a drop-in replacement that implements net.milkbowl.vault.economy.Economy

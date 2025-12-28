@@ -3,8 +3,8 @@ main: org.clockworx.hyperconomy.bukkit.BukkitConnector
 version: 0.975.8
 author: RegalOwl, ClockWorX
 website: https://github.com/radawson/HyperConomy
-softdepend: [HeroStronghold, Buycraft, Essentials, ServiceIO]
-loadbefore: []
+softdepend: [Essentials, ServiceIO, Shopkeepers]
+loadbefore: [Shopkeepers]
 commands:
    buy:
       description: Buys items.
