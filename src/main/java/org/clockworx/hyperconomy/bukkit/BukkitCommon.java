@@ -79,6 +79,8 @@ import org.clockworx.hyperconomy.minecraft.HItem;
 import org.clockworx.hyperconomy.minecraft.HLocation;
 import org.clockworx.hyperconomy.minecraft.HSign;
 
+import net.kyori.adventure.text.Component;
+
 public class BukkitCommon {
 
 	protected static final BlockFace[] planeFaces = {BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH, BlockFace.SOUTH};
@@ -128,9 +130,13 @@ public class BukkitCommon {
 		// Use Paper Tag API for modern sign checking
 		if (b != null && Tag.ALL_SIGNS.isTagged(b.getType())) {
 			Sign s = (Sign) b.getState();
-			String line3 = ChatColor.stripColor(s.getLine(2)).trim();
-			if (line3.equalsIgnoreCase("[sell:buy]") || line3.equalsIgnoreCase("[sell]") || line3.equalsIgnoreCase("[buy]")) {
-				return true;
+			// Use Component API instead of deprecated getLine()
+			java.util.List<Component> lines = s.lines();
+			if (lines.size() > 2) {
+				String line3 = ComponentHelper.stripColor(ComponentHelper.componentToLegacy(lines.get(2))).trim();
+				if (line3.equalsIgnoreCase("[sell:buy]") || line3.equalsIgnoreCase("[sell]") || line3.equalsIgnoreCase("[buy]")) {
+					return true;
+				}
 			}
 		}
 		return false;
@@ -141,8 +147,12 @@ public class BukkitCommon {
 		// Use Paper Tag API for modern sign checking
 		if (b != null && Tag.ALL_SIGNS.isTagged(b.getType())) {
 			Sign s = (Sign) b.getState();
-			String type = ChatColor.stripColor(s.getLine(2)).trim().replace(":", "").replace(" ", "");
-			if (SignType.isSignType(type)) return true;
+			// Use Component API instead of deprecated getLine()
+			java.util.List<Component> lines = s.lines();
+			if (lines.size() > 2) {
+				String type = ComponentHelper.stripColor(ComponentHelper.componentToLegacy(lines.get(2))).trim().replace(":", "").replace(" ", "");
+				if (SignType.isSignType(type)) return true;
+			}
 		}
 		return false;
 	}
@@ -163,7 +173,10 @@ public class BukkitCommon {
 		if (b == null) return false;
 		if (!(b.getState() instanceof Sign)) return false;
 		Sign s = (Sign) b.getState();
-		String line1 = ChatColor.stripColor(s.getLine(0)).trim();
+		// Use Component API instead of deprecated getLine()
+		java.util.List<Component> lines = s.lines();
+		if (lines.isEmpty()) return false;
+		String line1 = ComponentHelper.stripColor(ComponentHelper.componentToLegacy(lines.get(0))).trim();
 		if (!line1.equalsIgnoreCase("ChestShop")) return false;
 		HLocation sl = new HLocation(l);
 		sl.setY(sl.getY() - 1);
@@ -525,18 +538,12 @@ public class BukkitCommon {
         		itemMeta = new HBannerMeta(displayName, lore, enchantments, itemFlags, unbreakable, repairCost, baseColor, patterns);
         	} else if (im instanceof SpawnEggMeta) {
         		SpawnEggMeta sItemMeta = (SpawnEggMeta)im;
-        		// getSpawnedType() is deprecated - try to get entity type from Material name
-        		// Spawn eggs are now distinct materials like ZOMBIE_SPAWN_EGG, CREEPER_SPAWN_EGG, etc.
+        		// Use MaterialMetadataHelper to extract entity type from Material
+        		// Modern Paper uses distinct Material types for each spawn egg
+        		EntityType entityType = MaterialMetadataHelper.extractEntityTypeFromSpawnEgg(s.getType());
         		String entityTypeName = "PIG"; // Default fallback
-        		try {
-        			@SuppressWarnings("deprecation")
-        			EntityType spawnedType = sItemMeta.getSpawnedType();
-        			if (spawnedType != null) {
-        				entityTypeName = spawnedType.name();
-        			}
-        		} catch (Exception e) {
-        			// If getSpawnedType() is removed, we may need to determine from Material
-        			// For now, use default
+        		if (entityType != null) {
+        			entityTypeName = entityType.name();
         		}
         		itemMeta = new HSpawnEggMeta(displayName, lore, enchantments, itemFlags, unbreakable, repairCost, entityTypeName);
         	} else {
@@ -667,13 +674,10 @@ public class BukkitCommon {
         			}
         			// Add all patterns
         			for (HPattern hp:patterns) {
-        				// PatternType.valueOf() is deprecated - use try-catch for safety
-        				try {
-        					@SuppressWarnings("deprecation")
-        					PatternType patternType = PatternType.valueOf(hp.getPatternType());
+        				// Use MaterialMetadataHelper to extract PatternType
+        				PatternType patternType = MaterialMetadataHelper.extractPatternTypeFromString(hp.getPatternType());
+        				if (patternType != null) {
         					bm.addPattern(new Pattern(DyeColor.valueOf(hp.getDyeColor()), patternType));
-        				} catch (IllegalArgumentException e) {
-        					// If valueOf fails, skip this pattern
         				}
         			}
         		} else {
@@ -702,56 +706,14 @@ public class BukkitCommon {
 	
 	
 	protected String applyColor(String message) {
-		message = message.replace("&0", ChatColor.BLACK + "");
-		message = message.replace("&1", ChatColor.DARK_BLUE + "");
-		message = message.replace("&2", ChatColor.DARK_GREEN + "");
-		message = message.replace("&3", ChatColor.DARK_AQUA + "");
-		message = message.replace("&4", ChatColor.DARK_RED + "");
-		message = message.replace("&5", ChatColor.DARK_PURPLE + "");
-		message = message.replace("&6", ChatColor.GOLD + "");
-		message = message.replace("&7", ChatColor.GRAY + "");
-		message = message.replace("&8", ChatColor.DARK_GRAY + "");
-		message = message.replace("&9", ChatColor.BLUE + "");
-		message = message.replace("&a", ChatColor.GREEN + "");
-		message = message.replace("&b", ChatColor.AQUA + "");
-		message = message.replace("&c", ChatColor.RED + "");
-		message = message.replace("&d", ChatColor.LIGHT_PURPLE + "");
-		message = message.replace("&e", ChatColor.YELLOW + "");
-		message = message.replace("&f", ChatColor.WHITE + "");
-		message = message.replace("&k", ChatColor.MAGIC + "");
-		message = message.replace("&l", ChatColor.BOLD + "");
-		message = message.replace("&m", ChatColor.STRIKETHROUGH + "");
-		message = message.replace("&n", ChatColor.UNDERLINE + "");
-		message = message.replace("&o", ChatColor.ITALIC + "");
-		message = message.replace("&r", ChatColor.RESET + "");
-		return message;
+		// Use ComponentHelper to apply color codes using Paper Component API
+		return ComponentHelper.applyColor(message);
 	}
 	
 	
 	protected String removeColor(String message) {
-		message = message.replace("&0", "");
-		message = message.replace("&1", "");
-		message = message.replace("&2", "");
-		message = message.replace("&3", "");
-		message = message.replace("&4", "");
-		message = message.replace("&5", "");
-		message = message.replace("&6", "");
-		message = message.replace("&7", "");
-		message = message.replace("&8", "");
-		message = message.replace("&9", "");
-		message = message.replace("&a", "");
-		message = message.replace("&b", "");
-		message = message.replace("&c", "");
-		message = message.replace("&d", "");
-		message = message.replace("&e", "");
-		message = message.replace("&f", "");
-		message = message.replace("&k", "");
-		message = message.replace("&l", "");
-		message = message.replace("&m", "");
-		message = message.replace("&n", "");
-		message = message.replace("&o", "");
-		message = message.replace("&r", "");
-		return ChatColor.stripColor(message);
+		// Use ComponentHelper to strip color codes using Paper Component API
+		return ComponentHelper.stripColor(message);
 	}
 	
 	

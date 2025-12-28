@@ -673,9 +673,11 @@ public class BukkitConnector extends JavaPlugin implements MineCraftConnector, L
 			Sign s = (Sign) b.getState();
 			// Check if it's a wall sign using Tag API
 			boolean isWallSign = Tag.WALL_SIGNS.isTagged(b.getType());
+			// Use Component API instead of deprecated getLines()
+			java.util.List<net.kyori.adventure.text.Component> componentLines = s.lines();
 			ArrayList<String> lines = new ArrayList<String>();
-			for (String l:s.getLines()) {
-				lines.add(l);
+			for (net.kyori.adventure.text.Component component : componentLines) {
+				lines.add(ComponentHelper.componentToLegacy(component));
 			}
 			HSign sign = new HSign(hc, new HLocation(location), lines, isWallSign);
 			return sign;
@@ -687,10 +689,17 @@ public class BukkitConnector extends JavaPlugin implements MineCraftConnector, L
 	public void setSign(HSign sign) {
 		Sign s = common.getSign(sign.getLocation());
 		if (s == null) return;
-		s.setLine(0, applyColor(sign.getLine(0)));
-		s.setLine(1, applyColor(sign.getLine(1)));
-		s.setLine(2, applyColor(sign.getLine(2)));
-		s.setLine(3, applyColor(sign.getLine(3)));
+		// Use Component API instead of deprecated setLine() and getLine()
+		// HSign.getLine() returns String, so we convert to Component
+		java.util.List<net.kyori.adventure.text.Component> signLines = s.lines();
+		// Apply color to each line from HSign and set on Bukkit Sign using Component API
+		for (int i = 0; i < 4; i++) {
+			String lineText = sign.getLine(i);
+			if (lineText != null) {
+				net.kyori.adventure.text.Component component = ComponentHelper.applyColorComponent(common.applyColor(lineText));
+				s.line(i, component);
+			}
+		}
 		s.update();
 	}
 

@@ -38,6 +38,12 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>net.kyori</groupId>
+			<artifactId>adventure-text-serializer-legacy</artifactId>
+			<version>4.17.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>net.milkbowl.vault</groupId>
 			<artifactId>Vault</artifactId>
 			<version>1.6.6</version>
