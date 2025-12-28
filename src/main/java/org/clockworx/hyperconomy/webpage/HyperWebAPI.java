@@ -208,10 +208,10 @@ public class HyperWebAPI extends HttpServlet {
     		} //It's a boolean
     		else if (lType.isAssignableFrom(boolean.class)) {
     			lArgs[lIndex] = Boolean.parseBoolean(pParams.get(lIndex));
-    		} //It's a char
-    		else if (lType.isAssignableFrom(char.class)) {
-    			lArgs[lIndex] = new Character(pParams.get(lIndex).charAt(0));
-    		} //It's a player -> find by name
+    	} //It's a char
+    	else if (lType.isAssignableFrom(char.class)) {
+    		lArgs[lIndex] = pParams.get(lIndex).charAt(0); // Auto-boxing handles Character conversion
+    	} //It's a player -> find by name
     		else if (lType.isAssignableFrom(HyperPlayer.class)) {
     			lArgs[lIndex] = hc.getHyperPlayerManager().getHyperPlayer(pParams.get(lIndex));
     		} //The type isn't autorized (you must add a new type at this list

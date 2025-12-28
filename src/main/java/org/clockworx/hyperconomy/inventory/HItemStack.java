@@ -16,7 +16,7 @@ public class HItemStack {
 	
 	private String material;
     private short durability;
-    private byte data;
+    // Data byte removed - modern Paper uses distinct Material types instead of data values
     private HItemMeta itemMeta;
     private int amount;
     private int maxStackSize;
@@ -35,7 +35,7 @@ public class HItemStack {
     	this.itemMeta = itemMeta;
     	this.material = material;
     	this.durability = durability;
-    	this.data = data;
+    	// Data byte parameter ignored - modern Paper uses distinct Material types
     	this.amount = amount;
     	this.maxStackSize = maxStackSize;
     	this.maxDurability = maxDurability;
@@ -52,7 +52,7 @@ public class HItemStack {
 	    	this.itemMeta = HItemMetaFactory.generate(HItemMetaType.fromString(data.get("metaType")), data.get("itemMetaData"));
 	    	this.material = data.get("material");
 	    	this.durability = Short.parseShort(data.get("durability"));
-	    	this.data = Byte.parseByte(data.get("data"));
+	    	// Data byte removed from deserialization - modern Paper uses distinct Material types
 	    	this.amount = Integer.parseInt(data.get("amount"));
 	    	this.maxStackSize = Integer.parseInt(data.get("maxStackSize"));
 	    	this.maxDurability = Integer.parseInt(data.get("maxDurability"));
@@ -70,7 +70,7 @@ public class HItemStack {
 		data.put("itemMetaData", itemMeta.serialize());
 		data.put("material", material);
 		data.put("durability", durability+"");
-		data.put("data", this.data+"");
+		// Data byte removed from serialization - modern Paper uses distinct Material types
 		data.put("amount", amount+"");
 		data.put("maxStackSize", maxStackSize+"");
 		data.put("maxDurability", maxDurability+"");
@@ -86,7 +86,7 @@ public class HItemStack {
     	this.itemMeta = HItemMetaFactory.generate(stack.itemMeta);
     	this.material = stack.material;
     	this.durability = stack.durability;
-    	this.data = stack.data;
+    	// Data byte removed from copy constructor
     	this.amount = stack.amount;
     	this.maxStackSize = stack.maxStackSize;
     	this.maxDurability = stack.maxDurability;
@@ -98,7 +98,7 @@ public class HItemStack {
 		ArrayList<String> info = new ArrayList<String>();
 		info.add(color1 + "Material: " + color2 + material);
 		info.add(color1 + "Durability: " + color2 + durability);
-		info.add(color1 + "Data: " + color2 + data);
+		// Data byte removed from display - modern Paper uses distinct Material types
 		info.add(color1 + "Amount: " + color2 + amount);
 		info.add(color1 + "Max Stack Size: " + color2 + maxStackSize);
 		info.add(color1 + "Max Durability: " + color2 + maxDurability);
@@ -119,8 +119,9 @@ public class HItemStack {
 		return durability;
 	}
 
+	// getData() removed - modern Paper uses distinct Material types instead of data values
 	public byte getData() {
-		return data;
+		return 0; // Return 0 for compatibility, but data is no longer used
 	}
 
 	public HItemMeta getItemMeta() {
@@ -162,7 +163,7 @@ public class HItemStack {
 	public double getDurabilityPercent() {return (isDurable()) ? (1.0 - ((double)durability / (double)maxDurability)) : 1.0;}
 	public boolean isDurable() {return (maxDurability > 0) ? true : false;}
 	public boolean isDamaged() {return (isDurable() && durability > 0) ? true : false;}
-	public byte getComparisonData() {return (isDamaged()) ? 0:data;}
+	public byte getComparisonData() {return 0;} // Data byte removed - always return 0
 	public short getComparisonDurability() {return (isDamaged()) ? 0:durability;}
 	
 	public void setBlank() {

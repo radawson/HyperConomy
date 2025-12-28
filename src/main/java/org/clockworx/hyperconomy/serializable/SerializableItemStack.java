@@ -26,15 +26,14 @@ public class SerializableItemStack extends SerializableObject implements Seriali
 	private static final long serialVersionUID = 8634824379403255552L;
 	private String material;
     private short durability;
-    private byte data;
+    // Data byte removed - modern Paper uses distinct Material types instead of data values
     private SerializableItemMeta itemMeta;
   
  
-    @SuppressWarnings("deprecation")
 	public SerializableItemStack(ItemStack item) {
         this.material = item.getType().toString();
         this.durability = item.getDurability();
-        this.data = item.getData().getData(); 
+        // Data byte removed - modern Paper uses distinct Material types 
         if (item.hasItemMeta()) {
         	ItemMeta im = item.getItemMeta();
         	if (im instanceof EnchantmentStorageMeta) {
@@ -69,13 +68,12 @@ public class SerializableItemStack extends SerializableObject implements Seriali
 			SerializableItemStack sis = (SerializableItemStack)o;
 	        this.material = sis.getMaterial();
 	        this.durability = sis.getDurability();
-	        this.data = sis.getData();
+	        // Data byte removed - no longer needed
 	        this.itemMeta = sis.getItemMeta();
     	} catch (Exception e) {
     	}
     }
  
-    @SuppressWarnings("deprecation")
 	public ItemStack getItem() {
     	if (material == null || material == "") return null;
     	Material m = Material.matchMaterial(material);
@@ -86,14 +84,14 @@ public class SerializableItemStack extends SerializableObject implements Seriali
         if (itemMeta != null) {
         	item.setItemMeta(itemMeta.getItemMeta());
         }
-        item.getData().setData(data);
+        // Data byte removed - modern Paper uses distinct Material types
         return item;
     }
     
 	public void displayInfo(Player p, ChatColor color1, ChatColor color2) {
 		p.sendMessage(color1 + "Material: " + color2 + material);
 		p.sendMessage(color1 + "Durability: " + color2 + durability);
-		p.sendMessage(color1 + "Data: " + color2 + data);
+		// Data byte removed - no longer displayed
 		if (itemMeta != null) {
 			itemMeta.displayInfo(p, color1, color2);
 		}
@@ -111,9 +109,7 @@ public class SerializableItemStack extends SerializableObject implements Seriali
 		return durability;
 	}
 
-	public byte getData() {
-		return data;
-	}
+	// getData() removed - modern Paper uses distinct Material types instead of data values
 
 	public SerializableItemMeta getItemMeta() {
 		return itemMeta;
@@ -124,7 +120,7 @@ public class SerializableItemStack extends SerializableObject implements Seriali
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + data;
+		// Data byte removed from hashCode
 		result = prime * result + durability;
 		result = prime * result + ((itemMeta == null) ? 0 : itemMeta.hashCode());
 		result = prime * result + ((material == null) ? 0 : material.hashCode());
@@ -141,8 +137,7 @@ public class SerializableItemStack extends SerializableObject implements Seriali
 			return false;
 		SerializableItemStack other = (SerializableItemStack) obj;
 		if (considerDamage()) {
-			if (data != other.data)
-				return false;
+			// Data byte removed from equals comparison
 			if (durability != other.durability)
 				return false;
 		}

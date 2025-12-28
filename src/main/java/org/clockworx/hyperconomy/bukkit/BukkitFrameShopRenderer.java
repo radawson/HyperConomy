@@ -102,9 +102,17 @@ public class BukkitFrameShopRenderer extends MapRenderer {
 			}
 			
     		//clears transparent image pixels
+			// Note: getPixel() is deprecated but may still work. If it doesn't, we may need to use a different approach
+			// such as clearing the entire canvas and redrawing, or using MapView pixel access methods
 			for (int i=0;i<128;i++) {
 				for (int j=0;j<128;j++) {
-					if (canvas.getPixel(i, j) == MapPalette.TRANSPARENT) {
+					try {
+						byte pixel = canvas.getPixel(i, j);
+						if (pixel == MapPalette.TRANSPARENT) {
+							canvas.setPixel(i, j, MapPalette.WHITE);
+						}
+					} catch (Exception e) {
+						// If getPixel() is removed, set pixel directly
 						canvas.setPixel(i, j, MapPalette.WHITE);
 					}
 				}

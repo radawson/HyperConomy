@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -64,7 +65,10 @@ public class SerializableEnchantmentStorageMeta extends SerializableItemMeta imp
 			esm.addEnchant(se.getEnchantment(), se.getLvl(), true);
 		}
 		for (SerializableEnchantment se:storedEnchantments) {
-			esm.addStoredEnchant(Enchantment.getByName(se.getEnchantmentName()), se.getLvl(), true);
+			Enchantment enchant = Enchantment.getByKey(NamespacedKey.minecraft(se.getEnchantmentName()));
+			if (enchant != null) {
+				esm.addStoredEnchant(enchant, se.getLvl(), true);
+			}
 		}
 		return esm;
 	}

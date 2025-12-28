@@ -15,6 +15,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Tag;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -345,8 +346,8 @@ public class BukkitConnector extends JavaPlugin implements MineCraftConnector, L
 	
 	@Override
 	public boolean conflictsWith(HEnchantment e1, HEnchantment e2) {
-		Enchantment ench1 = Enchantment.getByName(e1.getEnchantmentName());
-		Enchantment ench2 = Enchantment.getByName(e2.getEnchantmentName());
+		Enchantment ench1 = Enchantment.getByKey(NamespacedKey.minecraft(e1.getEnchantmentName()));
+		Enchantment ench2 = Enchantment.getByKey(NamespacedKey.minecraft(e2.getEnchantmentName()));
 		return ench1.conflictsWith(ench2);
 	}
 	
@@ -699,10 +700,21 @@ public class BukkitConnector extends JavaPlugin implements MineCraftConnector, L
 	@Override
 	public HBlock getAttachedBlock(HSign sign) {
 		Block b = common.getBlock(sign.getLocation());
-		org.bukkit.material.Sign msign = (org.bukkit.material.Sign) b.getState().getData();
-		BlockFace attachedface = msign.getAttachedFace();
-		Block attachedblock = b.getRelative(attachedface);
-		return common.getBlock(attachedblock);
+		BlockFace attachedface = null;
+		// Use BlockData API instead of deprecated Material API
+		if (b.getBlockData() instanceof org.bukkit.block.data.type.WallSign) {
+			org.bukkit.block.data.type.WallSign wallSign = (org.bukkit.block.data.type.WallSign) b.getBlockData();
+			attachedface = wallSign.getFacing().getOppositeFace();
+		} else if (b.getBlockData() instanceof org.bukkit.block.data.type.Sign) {
+			// Standing signs don't have an attached face, they're placed on the ground
+			// Return the block below
+			attachedface = BlockFace.DOWN;
+		}
+		if (attachedface != null) {
+			Block attachedblock = b.getRelative(attachedface);
+			return common.getBlock(attachedblock);
+		}
+		return null;
 	}
 
 
