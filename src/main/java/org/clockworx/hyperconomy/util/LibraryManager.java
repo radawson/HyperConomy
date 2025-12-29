@@ -160,6 +160,13 @@ public class LibraryManager implements HyperEventListener {
 			for (Dependency d:dependencies) {
 				if (hc.getMC().getServerConnectionType() != ServerConnectionType.GUI && d.guiOnly) continue;
 				File f = new File(d.filePath);
+				// Only process if file exists
+				if (!f.exists()) {
+					if (d.optional) {
+						hc.getMC().logInfo("[HyperConomy]Optional dependency " + d.getFileName() + " not found, skipping.");
+					}
+					continue;
+				}
 				try {
 					addURL(f.toURI().toURL());
 					JarFile jar = new JarFile(f);
@@ -173,7 +180,12 @@ public class LibraryManager implements HyperEventListener {
 					}
 					jar.close();
 				} catch (Exception e) {
-					e.printStackTrace();
+					if (d.optional) {
+						hc.getMC().logInfo("[HyperConomy]Error processing optional dependency " + d.getFileName() + ": " + e.getMessage());
+					} else {
+						hc.getMC().logSevere("[HyperConomy]Error processing required dependency " + d.getFileName() + ": " + e.getMessage());
+						e.printStackTrace();
+					}
 				}
 			}
 			
@@ -267,13 +279,41 @@ public class LibraryManager implements HyperEventListener {
 
 	private void addURL(URL url) {
 		try {
-			ClassLoader cl = ClassLoader.getSystemClassLoader();
-			URLClassLoader loader = (URLClassLoader) cl;
-			Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[] { URL.class });
-			method.setAccessible(true);
-			method.invoke(loader, url);
+			// Try to use the plugin's classloader first (should be a URLClassLoader)
+			ClassLoader pluginClassLoader = hc.getClass().getClassLoader();
+			if (pluginClassLoader instanceof URLClassLoader) {
+				URLClassLoader loader = (URLClassLoader) pluginClassLoader;
+				Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[] { URL.class });
+				method.setAccessible(true);
+				method.invoke(loader, url);
+				return;
+			}
+			
+			// For Java 9+, try to use reflection to access the URLClassPath field
+			try {
+				Method addURLMethod = pluginClassLoader.getClass().getDeclaredMethod("addURL", URL.class);
+				addURLMethod.setAccessible(true);
+				addURLMethod.invoke(pluginClassLoader, url);
+				return;
+			} catch (NoSuchMethodException e) {
+				// Method doesn't exist, try alternative approach
+			}
+			
+			// Last resort: try to use the system classloader if it's a URLClassLoader
+			ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+			if (systemClassLoader instanceof URLClassLoader) {
+				URLClassLoader loader = (URLClassLoader) systemClassLoader;
+				Method method = URLClassLoader.class.getDeclaredMethod("addURL", new Class[] { URL.class });
+				method.setAccessible(true);
+				method.invoke(loader, url);
+				return;
+			}
+			
+			// If all else fails, log a warning but don't crash
+			hc.getMC().logInfo("[HyperConomy]Could not add URL to classpath (Java 9+ module system). Dependencies may need to be shaded into the plugin JAR.");
 		} catch (Exception e) {
-			e.printStackTrace();
+			// Don't crash if we can't add the URL - dependencies should be shaded anyway
+			hc.getMC().logInfo("[HyperConomy]Could not add URL to classpath: " + e.getMessage());
 		}
 	}
 	
