@@ -41,9 +41,10 @@ public class NBTTools {
 			// Get version from CraftServer class package name
 			// Paper's reflection rewriter requires careful version extraction
 			String serverPackage = Bukkit.getServer().getClass().getPackage().getName();
-			String version;
+			String version = null;
 			
 			// Extract version from package name like "org.bukkit.craftbukkit.v1_21_R1"
+			// On Paper with Mojang mappings, the structure might be different
 			if (serverPackage.contains("craftbukkit")) {
 				// Find the part after "craftbukkit."
 				int craftbukkitIndex = serverPackage.indexOf("craftbukkit.");
@@ -53,54 +54,141 @@ public class NBTTools {
 					int nextDot = afterCraftbukkit.indexOf(".");
 					if (nextDot > 0) {
 						version = afterCraftbukkit.substring(0, nextDot);
-					} else {
+					} else if (afterCraftbukkit.length() > 0 && !afterCraftbukkit.equals("craftbukkit")) {
+						// Only use if it's not just "craftbukkit"
 						version = afterCraftbukkit;
 					}
-				} else {
-					// Fallback: use last segment
-					version = serverPackage.substring(serverPackage.lastIndexOf(".") + 1);
 				}
-			} else {
-				// Fallback: try to get version from CraftServer class name directly
+			}
+			
+			// If version extraction from package failed, try class name
+			if (version == null || version.isEmpty() || version.equals("craftbukkit")) {
 				Class<?> craftServerClass = Bukkit.getServer().getClass();
 				String className = craftServerClass.getName();
 				// Extract version from class name like "org.bukkit.craftbukkit.v1_21_R1.CraftServer"
 				if (className.contains("craftbukkit")) {
 					int craftbukkitIndex = className.indexOf("craftbukkit.");
-					String afterCraftbukkit = className.substring(craftbukkitIndex + "craftbukkit.".length());
-					int nextDot = afterCraftbukkit.indexOf(".");
-					if (nextDot > 0) {
-						version = afterCraftbukkit.substring(0, nextDot);
-					} else {
-						version = afterCraftbukkit;
-					}
-				} else {
-					// Last resort: use last segment before class name
-					int lastDot = className.lastIndexOf(".");
-					int secondLastDot = className.lastIndexOf(".", lastDot - 1);
-					if (secondLastDot > 0) {
-						version = className.substring(secondLastDot + 1, lastDot);
-					} else {
-						throw new RuntimeException("Could not determine server version from: " + className);
+					if (craftbukkitIndex >= 0) {
+						String afterCraftbukkit = className.substring(craftbukkitIndex + "craftbukkit.".length());
+						int nextDot = afterCraftbukkit.indexOf(".");
+						if (nextDot > 0) {
+							version = afterCraftbukkit.substring(0, nextDot);
+						} else if (afterCraftbukkit.length() > 0 && !afterCraftbukkit.equals("craftbukkit")) {
+							version = afterCraftbukkit;
+						}
 					}
 				}
 			}
 			
-			// Validate version doesn't contain "craftbukkit" (which would cause duplication)
-			if (version.contains("craftbukkit")) {
-				throw new RuntimeException("Invalid version detected (contains 'craftbukkit'): " + version);
+			// Last resort: try to extract from any package segment that looks like a version
+			if (version == null || version.isEmpty() || version.equals("craftbukkit")) {
+				String[] parts = serverPackage.split("\\.");
+				for (String part : parts) {
+					// Look for version pattern like v1_21_R1 or 1_21_R1
+					if (part.matches("v?\\d+_\\d+_R\\d+") || part.matches("v?\\d+_\\d+_\\d+")) {
+						version = part.startsWith("v") ? part.substring(1) : part;
+						break;
+					}
+				}
 			}
 			
-			craftItemStackClass = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
-			nbtTagCompound = Class.forName("net.minecraft.server." + version + ".NBTTagCompound");
+			// If still no version, try to get it from CraftItemStack class directly
+			if (version == null || version.isEmpty() || version.equals("craftbukkit")) {
+				try {
+					// Try to find CraftItemStack class and extract version from its package
+					Class<?> craftItemStackClass = Class.forName("org.bukkit.craftbukkit.inventory.CraftItemStack");
+					String craftItemStackPackage = craftItemStackClass.getPackage().getName();
+					if (craftItemStackPackage.contains("craftbukkit")) {
+						int craftbukkitIndex = craftItemStackPackage.indexOf("craftbukkit.");
+						if (craftbukkitIndex >= 0) {
+							String afterCraftbukkit = craftItemStackPackage.substring(craftbukkitIndex + "craftbukkit.".length());
+							int nextDot = afterCraftbukkit.indexOf(".");
+							if (nextDot > 0) {
+								version = afterCraftbukkit.substring(0, nextDot);
+							}
+						}
+					}
+				} catch (ClassNotFoundException e) {
+					// CraftItemStack not found at expected location - this is OK, we'll try without version
+				}
+			}
+			
+			// Clean up version - if it's "craftbukkit" or invalid, set to null (will try without version)
+			if (version != null && (version.equals("craftbukkit") || version.isEmpty())) {
+				version = null;
+			}
+			
+			// Try to load classes - on Paper with Mojang mappings, classes may not have version in package
+			Class<?> loadedCraftItemStackClass = null;
+			Class<?> loadedNbtTagCompound = null;
+			
+			// First, try without version (Paper Mojang mappings style - most common on modern Paper)
+			try {
+				loadedCraftItemStackClass = Class.forName("org.bukkit.craftbukkit.inventory.CraftItemStack");
+				// On Paper with Mojang mappings, NBT classes are in net.minecraft.nbt
+				loadedNbtTagCompound = Class.forName("net.minecraft.nbt.CompoundTag");
+			} catch (ClassNotFoundException e) {
+				// Try with version (Spigot-style) if version was detected
+				if (version != null && !version.isEmpty() && !version.equals("craftbukkit")) {
+					try {
+						loadedCraftItemStackClass = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
+						loadedNbtTagCompound = Class.forName("net.minecraft.server." + version + ".NBTTagCompound");
+					} catch (ClassNotFoundException e2) {
+						// Last attempt: try net.minecraft.server without version
+						try {
+							loadedNbtTagCompound = Class.forName("net.minecraft.server.NBTTagCompound");
+						} catch (ClassNotFoundException e3) {
+							throw new RuntimeException("Could not find NBT classes. Tried: org.bukkit.craftbukkit.inventory.CraftItemStack, net.minecraft.nbt.CompoundTag, org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack, net.minecraft.server." + version + ".NBTTagCompound, net.minecraft.server.NBTTagCompound. Package: " + serverPackage, e3);
+						}
+					}
+				} else {
+					// No valid version, try net.minecraft.server without version as last resort
+					try {
+						loadedNbtTagCompound = Class.forName("net.minecraft.server.NBTTagCompound");
+					} catch (ClassNotFoundException e3) {
+						throw new RuntimeException("Could not find CraftItemStack or NBT classes. Package: " + serverPackage + ", className: " + Bukkit.getServer().getClass().getName(), e);
+					}
+				}
+			}
+			
+			craftItemStackClass = loadedCraftItemStackClass;
+			nbtTagCompound = loadedNbtTagCompound;
 			Object nbtTag = nbtTagCompound.getDeclaredConstructor().newInstance();
+			
+			// Try to find NBTBase - location depends on mappings
 			@SuppressWarnings("rawtypes")
-			Class nbtBase = Class.forName("net.minecraft.server." + version + ".NBTBase");
+			Class nbtBase = null;
+			try {
+				if (version != null && !version.isEmpty()) {
+					nbtBase = Class.forName("net.minecraft.server." + version + ".NBTBase");
+				}
+			} catch (ClassNotFoundException e) {
+				// Try Mojang mappings location
+				try {
+					nbtBase = Class.forName("net.minecraft.nbt.Tag");
+				} catch (ClassNotFoundException e2) {
+					// Try without version
+					try {
+						nbtBase = Class.forName("net.minecraft.server.NBTBase");
+					} catch (ClassNotFoundException e3) {
+						throw new RuntimeException("Could not find NBTBase class", e3);
+					}
+				}
+			}
 			craftItemStackAsNMSCopyMethod = craftItemStackClass.getMethod("asNMSCopy", ItemStack.class);
 			ItemStack bukkitItemStack = new ItemStack(Material.COBBLESTONE, 1);
 			Object nmsItemStack = craftItemStackAsNMSCopyMethod.invoke(craftItemStackClass, bukkitItemStack);
 			craftItemStackAsCraftMirrorMethod = craftItemStackClass.getMethod("asCraftMirror", nmsItemStack.getClass());
-			nmsItemStackGetNameMethod = nmsItemStack.getClass().getMethod("getName");
+			
+			// getName() method doesn't exist in newer Paper versions with Mojang mappings
+			// Make it optional - if not found, getName() will return null
+			try {
+				nmsItemStackGetNameMethod = nmsItemStack.getClass().getMethod("getName");
+			} catch (NoSuchMethodException e) {
+				// Method doesn't exist in this version - this is OK, getName() will return null
+				nmsItemStackGetNameMethod = null;
+			}
+			
 			nmsItemStackGetTagMethod = nmsItemStack.getClass().getMethod("getTag");
 			nmsItemStackSetTagMethod = nmsItemStack.getClass().getMethod("setTag", nbtTag.getClass());
 			nbtTagCompoundHasKeyMethod = nbtTag.getClass().getMethod("hasKey", String.class);
@@ -394,6 +482,10 @@ public class NBTTools {
 	
 	public String getName(ItemStack itemStack) {
 		try {
+			if (nmsItemStackGetNameMethod == null) {
+				// Method not available in this server version
+				return null;
+			}
 			Object nmsItemStack = getNMSItemStack(itemStack);
 			if (nmsItemStack == null) return null;
 			return (String) nmsItemStackGetNameMethod.invoke(nmsItemStack);

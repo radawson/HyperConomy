@@ -5,6 +5,7 @@ build/
 gradle/wrapper/gradle-wrapper.properties.bak
 
 # Gradle lock files
+.gradle/
 *.lock
 *.lockfile
 gradle.lockfile
