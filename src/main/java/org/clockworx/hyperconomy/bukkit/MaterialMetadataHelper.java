@@ -1,6 +1,8 @@
 package org.clockworx.hyperconomy.bukkit;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
 import org.bukkit.block.banner.PatternType;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
@@ -43,7 +45,7 @@ public class MaterialMetadataHelper {
 
     /**
      * Extracts EntityType from a spawn egg ItemStack.
-     * First tries Material-based extraction, then falls back to deprecated method if needed.
+     * Uses Material-based extraction (modern Paper uses distinct Material types for each spawn egg).
      * 
      * @param itemStack The ItemStack to extract entity type from
      * @return EntityType if itemStack is a spawn egg, null otherwise
@@ -53,27 +55,9 @@ public class MaterialMetadataHelper {
             return null;
         }
         
-        // Try Material-based extraction first
-        EntityType entityType = extractEntityTypeFromSpawnEgg(itemStack.getType());
-        if (entityType != null) {
-            return entityType;
-        }
-        
-        // Fallback to deprecated method only if Material extraction fails
-        // This handles edge cases where Material might not match expected pattern
-        if (itemStack.hasItemMeta() && itemStack.getItemMeta() instanceof org.bukkit.inventory.meta.SpawnEggMeta) {
-            org.bukkit.inventory.meta.SpawnEggMeta meta = (org.bukkit.inventory.meta.SpawnEggMeta) itemStack.getItemMeta();
-            try {
-                @SuppressWarnings("deprecation")
-                EntityType deprecatedType = meta.getSpawnedType();
-                return deprecatedType;
-            } catch (Exception e) {
-                // Method removed or unavailable
-                return null;
-            }
-        }
-        
-        return null;
+        // Modern Paper uses distinct Material types for each spawn egg
+        // Extract entity type from Material name (e.g., ZOMBIE_SPAWN_EGG -> ZOMBIE)
+        return extractEntityTypeFromSpawnEgg(itemStack.getType());
     }
 
     /**
@@ -119,27 +103,52 @@ public class MaterialMetadataHelper {
 
     /**
      * Extracts PatternType from a string.
-     * Checks for Paper API alternatives first, then falls back to enum.valueOf().
+     * Uses Paper Registry API (1.21+) with fallback to deprecated enum methods.
+     * Note: Both Registry.BANNER_PATTERN and PatternType enum methods are deprecated in 1.21+,
+     * but they remain functional until a replacement API is provided.
      * 
      * @param patternName The pattern name string
      * @return PatternType if found, null otherwise
      */
+    @SuppressWarnings("deprecation")
     public static PatternType extractPatternTypeFromString(String patternName) {
         if (patternName == null || patternName.isEmpty()) {
             return null;
         }
         
-        // Try to find PatternType by name
-        // Note: PatternType.valueOf() is deprecated, but enum.valueOf() is standard Java
-        // If Paper provides an alternative, it should be used here
+        // Try Registry API first (Paper 1.21+) - deprecated but still functional
         try {
-            // Check if there's a Paper API method first
-            // For now, we'll use valueOf() but wrap it properly
-            @SuppressWarnings("deprecation")
+            // Try with minecraft: namespace first
+            NamespacedKey key = NamespacedKey.minecraft(patternName.toLowerCase());
+            PatternType patternType = Registry.BANNER_PATTERN.get(key);
+            if (patternType != null) {
+                return patternType;
+            }
+        } catch (Exception e) {
+            // Registry lookup failed, try fallback
+        }
+        
+        // Fallback: Try with explicit minecraft: prefix if not already present
+        try {
+            String lowerPatternName = patternName.toLowerCase();
+            if (!lowerPatternName.contains(":")) {
+                NamespacedKey key = NamespacedKey.minecraft(lowerPatternName);
+                PatternType patternType = Registry.BANNER_PATTERN.get(key);
+                if (patternType != null) {
+                    return patternType;
+                }
+            }
+        } catch (Exception e) {
+            // Fallback failed
+        }
+        
+        // Last resort: Use deprecated enum valueOf() method
+        // This handles cases where Registry might not have the pattern
+        try {
             PatternType patternType = PatternType.valueOf(patternName.toUpperCase());
             return patternType;
         } catch (IllegalArgumentException e) {
-            // PatternType doesn't exist
+            // PatternType not found
             return null;
         }
     }
