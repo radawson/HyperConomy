@@ -30,7 +30,9 @@ public class UpdateChecker {
 	
 	public UpdateChecker(HyperConomy hc) {
 		this.hc = hc;
-		this.currentVersion = hc.getMC().getVersion();
+		String version = hc.getMC().getVersion();
+		// Remove 'v' prefix if present for consistent version comparison
+		this.currentVersion = version.startsWith("v") ? version.substring(1) : version;
 	}
 	
 	public void runCheck() {
@@ -44,42 +46,70 @@ public class UpdateChecker {
 		new Thread(new Runnable() {
 			public void run() {
 				try {
-					URL url = new URL("https://api.curseforge.com/servermods/files?projectids=38059");
+					// Use GitHub Releases API instead of CurseForge
+					URL url = new URL("https://api.github.com/repos/radawson/HyperConomy/releases");
 					URLConnection conn = url.openConnection();
 					conn.setReadTimeout(10000);
 					conn.addRequestProperty("User-Agent", "HyperConomy/v"+hc.getMC().getVersion()+" (by RegalOwl)");
-					conn.setDoOutput(true);
+					conn.addRequestProperty("Accept", "application/vnd.github.v3+json");
 					BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-					String response = reader.readLine();
+					StringBuilder responseBuilder = new StringBuilder();
+					String line;
+					while ((line = reader.readLine()) != null) {
+						responseBuilder.append(line);
+					}
+					reader.close();
+					String response = responseBuilder.toString();
 					JSONArray array = (JSONArray) JSONValue.parse(response);
-					if (array.size() == 0) return;
-					boolean start = false;
+					if (array == null || array.size() == 0) return;
+					
 					ArrayList<String> acceptableUpgrades = new ArrayList<String>();
-					for (Object o:array) {
-						JSONObject jObject = (JSONObject)o;
-						String nameData = (String)jObject.get("name");
-						nameData = nameData.trim();
-						if (nameData.equals("v0.974.1 [Dev]")) start = true;
-						if (!start) continue;
-						String version = nameData.substring(1, nameData.indexOf(" "));
-						latestVersion = version;
-						String type = getType(nameData);
+					for (Object o : array) {
+						JSONObject release = (JSONObject) o;
+						String tagName = (String) release.get("tag_name");
+						if (tagName == null) continue;
+						
+						// Remove 'v' prefix if present (e.g., "v0.975.11" -> "0.975.11")
+						String version = tagName.startsWith("v") ? tagName.substring(1) : tagName;
+						
+						// Get release type from prerelease flag and tag name
+						Boolean isPrerelease = (Boolean) release.get("prerelease");
+						boolean isDev = isPrerelease != null && isPrerelease;
+						boolean isBeta = tagName.toLowerCase().contains("beta");
+						boolean isRB = !isDev && !isBeta; // Recommended build = stable release
+						
+						// Determine type string for display
+						String releaseType = isDev ? "DEV" : (isBeta ? "BETA" : "RB");
+						
 						int code = getVersionComparisonCode(currentVersion, version);
-						//hc.getMC().logSevere("["+version+"]["+code+"]");
-						if (code >= 0) continue;
-						if (type.equalsIgnoreCase("BROKEN")) continue;
-						if (type.equalsIgnoreCase("DEV") && !dev) continue;
-						if (type.equalsIgnoreCase("BETA") && !beta) continue;
-						if (type.equalsIgnoreCase("RB") && !rb) continue;
+						if (code >= 0) continue; // Current version is same or newer
+						
+						// Filter by user preferences
+						if (isDev && !dev) continue;
+						if (isBeta && !beta) continue;
+						if (isRB && !rb) continue;
+						
+						// Format: "v{version} [{type}]" for compatibility with existing code
+						String nameData = "v" + version + " [" + releaseType + "]";
 						acceptableUpgrades.add(nameData);
 					}
+					
 					if (acceptableUpgrades.size() == 0) {
-						int code = getVersionComparisonCode(currentVersion, latestVersion);
-						if (code == 1) runningDevBuild = true;
+						// Check if we're running a dev build (newer than latest release)
+						if (array.size() > 0) {
+							JSONObject latestRelease = (JSONObject) array.get(0);
+							String latestTag = (String) latestRelease.get("tag_name");
+							if (latestTag != null) {
+								String latest = latestTag.startsWith("v") ? latestTag.substring(1) : latestTag;
+								int code = getVersionComparisonCode(currentVersion, latest);
+								if (code == 1) runningDevBuild = true;
+							}
+						}
 					} else {
-						latestVersion = acceptableUpgrades.get(acceptableUpgrades.size() - 1);
-						type = getType(latestVersion);
-						latestVersion = latestVersion.substring(1, latestVersion.indexOf(" "));
+						// Get the most recent acceptable upgrade (first in list since GitHub returns newest first)
+						String nameData = acceptableUpgrades.get(0);
+						type = getType(nameData);
+						latestVersion = nameData.substring(1, nameData.indexOf(" "));
 						upgradeAvailable = true;
 					}
 					hc.getMC().runTask(new Runnable() {
