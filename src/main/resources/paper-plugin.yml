@@ -1,0 +1,19 @@
+name: HyperConomy
+version: 0.975.11
+description: A modern economy and shop plugin for Minecraft
+authors: [RegalOwl, ClockWorX]
+website: https://github.com/radawson/HyperConomy
+api-version: '1.21.11'
+
+main: org.clockworx.hyperconomy.bukkit.BukkitConnector
+
+# Dependencies - soft dependencies that should load before HyperConomy
+dependencies:
+  server:
+    Essentials:
+      load: AFTER
+      required: false
+    ServiceIO:
+      load: AFTER
+      required: false
+
