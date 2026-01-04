@@ -37,6 +37,7 @@ public class LibraryManager implements HyperEventListener {
 	private boolean librariesLoaded;
 	private ArrayList<String> dependencyLoadErrors = new ArrayList<String>();
 	private boolean dependencyError = false;
+	private boolean moduleSystemWarningLogged = false;
 
 	public LibraryManager(HyperConomy hc, HyperEventHandler heh) {
 		this.hc = hc;
@@ -309,11 +310,38 @@ public class LibraryManager implements HyperEventListener {
 				return;
 			}
 			
-			// If all else fails, log a warning but don't crash
-			hc.getMC().logInfo("[HyperConomy]Could not add URL to classpath (Java 9+ module system). Dependencies may need to be shaded into the plugin JAR.");
+			// If all else fails, log a single informational message about module system
+			if (!moduleSystemWarningLogged) {
+				hc.getMC().logInfo("[HyperConomy]Dependencies are already shaded into the plugin JAR. Runtime classpath modification is not needed (Java 9+ module system).");
+				moduleSystemWarningLogged = true;
+			}
+		} catch (IllegalAccessException e) {
+			// Check if this is a Java 9+ module system restriction
+			String errorMessage = e.getMessage();
+			if (errorMessage != null && errorMessage.contains("module java.base does not")) {
+				// This is expected behavior when dependencies are shaded - suppress repeated messages
+				if (!moduleSystemWarningLogged) {
+					hc.getMC().logInfo("[HyperConomy]Dependencies are already shaded into the plugin JAR. Runtime classpath modification is not needed (Java 9+ module system).");
+					moduleSystemWarningLogged = true;
+				}
+				// Silently return - this is expected and not an error
+				return;
+			}
+			// Unexpected IllegalAccessException - log it
+			hc.getMC().logSevere("[HyperConomy]Unexpected error adding URL to classpath: " + e.getMessage());
 		} catch (Exception e) {
-			// Don't crash if we can't add the URL - dependencies should be shaded anyway
-			hc.getMC().logInfo("[HyperConomy]Could not add URL to classpath: " + e.getMessage());
+			// Only log unexpected errors (not module system restrictions)
+			String errorMessage = e.getMessage();
+			if (errorMessage != null && errorMessage.contains("module java.base does not")) {
+				// Module system restriction - suppress
+				if (!moduleSystemWarningLogged) {
+					hc.getMC().logInfo("[HyperConomy]Dependencies are already shaded into the plugin JAR. Runtime classpath modification is not needed (Java 9+ module system).");
+					moduleSystemWarningLogged = true;
+				}
+				return;
+			}
+			// Unexpected error - log it
+			hc.getMC().logSevere("[HyperConomy]Unexpected error adding URL to classpath: " + e.getMessage());
 		}
 	}
 	

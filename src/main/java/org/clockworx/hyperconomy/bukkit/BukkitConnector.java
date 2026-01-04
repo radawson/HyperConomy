@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
 
@@ -82,7 +81,7 @@ public class BukkitConnector extends JavaPlugin implements MineCraftConnector, L
 		this.hc = new HyperConomy(this);
 		this.bl = new BukkitListener(this);
 		this.common = new BukkitCommon(hc);
-		this.nbt = new NBTTools();
+		this.nbt = new NBTTools(this);
 		useExternalEconomy = false;	
 	}
 	
@@ -459,15 +458,13 @@ public class BukkitConnector extends JavaPlugin implements MineCraftConnector, L
 
 	@Override
 	public void logInfo(String message) {
-		Logger log = Logger.getLogger("Minecraft");
-		log.info(applyColor(message));
+		this.getLogger().info(applyColor(message));
 	}
 
 
 	@Override
 	public void logSevere(String message) {
-		Logger log = Logger.getLogger("Minecraft");
-		log.severe(applyColor(message));
+		this.getLogger().severe(applyColor(message));
 	}
 
 

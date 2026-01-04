@@ -1,5 +1,5 @@
 name: HyperConomy
-version: 0.975.11
+version: ${project.version}
 description: A modern economy and shop plugin for Minecraft
 authors: [RegalOwl, ClockWorX]
 website: https://github.com/radawson/HyperConomy

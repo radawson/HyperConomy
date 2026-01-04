@@ -10,6 +10,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+import java.util.logging.Logger;
 
 /**
  * NBTTools provides methods for storing and retrieving custom data on ItemStacks.
@@ -33,6 +35,9 @@ public class NBTTools {
 	/** The plugin instance used for creating namespaced keys. */
 	private Plugin plugin;
 	
+	/** Logger instance for logging messages. */
+	private Logger logger;
+	
 	/** Flag indicating whether the tools loaded successfully. */
 	private boolean loadedSuccessfully = false;
 
@@ -41,18 +46,35 @@ public class NBTTools {
 	 * 
 	 * <p>This constructor initializes the PersistentDataContainer-based
 	 * implementation which works on Minecraft 1.14+ and is required for 1.20.5+.
+	 * 
+	 * @param plugin the plugin instance (can be null, will be retrieved lazily)
 	 */
-	public NBTTools() {
+	public NBTTools(Plugin plugin) {
+		this.plugin = plugin;
+		// Initialize logger from plugin if available, otherwise use fallback
+		if (plugin instanceof JavaPlugin) {
+			this.logger = ((JavaPlugin) plugin).getLogger();
+		} else if (plugin != null) {
+			// Fallback for non-JavaPlugin instances
+			this.logger = Logger.getLogger(plugin.getName());
+		} else {
+			// Fallback logger if plugin is not yet available
+			this.logger = Logger.getLogger("HyperConomy");
+		}
+		
 		try {
-			// Get the plugin instance for creating namespaced keys
-			this.plugin = org.bukkit.Bukkit.getPluginManager().getPlugin("HyperConomy");
+			// Get the plugin instance for creating namespaced keys if not provided
+			if (this.plugin == null) {
+				this.plugin = org.bukkit.Bukkit.getPluginManager().getPlugin("HyperConomy");
+			}
 			if (this.plugin == null) {
 				// Plugin not yet loaded, try to get it later
 				// This can happen during early initialization
-				System.out.println("[HyperConomy] NBTTools: Plugin not yet available, will initialize lazily.");
+				logger.info("NBTTools: Plugin not yet available, will initialize lazily.");
 			}
 			loadedSuccessfully = true;
 		} catch (Exception e) {
+			logger.severe("Error initializing NBTTools: " + e.getMessage());
 			e.printStackTrace();
 			loadedSuccessfully = false;
 		}

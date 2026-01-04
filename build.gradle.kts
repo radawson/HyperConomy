@@ -229,12 +229,15 @@ tasks {
     processResources {
         // Process all resource files for version expansion
         // Note: ${project.version} will be replaced with the version value
-        filesMatching(listOf("config.yml", "plugin.yml", "levels.yml")) {
+        val versionString = project.version.toString()
+        filesMatching(listOf("config.yml", "plugin.yml", "levels.yml", "paper-plugin.yml")) {
             // Replace ${project.version} with actual version
-            filter { line -> line.replace("\${project.version}", project.version.toString()) }
-            expand(
-                "version" to project.version
-            )
+            // Using filter to replace the literal string ${project.version}
+            // The dollar sign must be escaped in the Kotlin string to match the literal ${project.version} in files
+            filter { line -> 
+                line.replace("\${project.version}", versionString)
+                    .replace("\${version}", versionString)
+            }
         }
     }
 }

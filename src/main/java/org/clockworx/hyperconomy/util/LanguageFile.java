@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.Logger;
 
 import regalowl.simpledatalib.file.FileTools;
 import org.clockworx.hyperconomy.HyperConomy;
@@ -102,8 +101,7 @@ public class LanguageFile {
 				language.put(name, text);
 			}
 		} catch (Exception e) {
-			Logger log = Logger.getLogger("Minecraft");
-			log.severe("[HyperConomy]You likely have an error in your language file...using a backup.");
+			hc.getMC().logSevere("[HyperConomy]You likely have an error in your language file...using a backup.");
 		}
 	}
 	
